@@ -1,0 +1,11 @@
+* [33md453f1f[m[33m ([m[1;36mHEAD -> [m[1;32mfeature/sequelize/models[m[33m, [m[1;31morigin/feature/sequelize/models[m[33m)[m feat: add models index with Sequelize init and associations
+* [33m7b2e72b[m feat: add Notification model
+* [33mb8fa769[m feat: add Rating model with self-rating constraint
+* [33m80d3fef[m feat: add Inscription model with waitlist logic
+* [33mcaf00c0[m feat: add Event model with virtual field availableSpots
+* [33m977fde7[m feat: add User model with bcrypt hook and comparePassword method
+[31m|[m * [33m01838f8[m[33m ([m[1;31morigin/feature/develop-schema[m[33m, [m[1;32mfeature/develop-schema[m[33m)[m a
+[31m|[m * [33m0a16e8d[m feat: add initial database schema with tables, constraints and indexes
+[31m|[m[31m/[m  
+* [33m36a32d3[m[33m ([m[1;31morigin/master[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mmaster[m[33m, [m[1;32mdevelop[m[33m)[m feat: configuracion inicial del proyecto Sportmatch
+* [33mbea89ea[m[33m ([m[1;31morigin/main[m[33m, [m[1;32mmain[m[33m)[m Initial commit

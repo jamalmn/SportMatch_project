@@ -1,1 +1,38 @@
 @import "tailwindcss";
+
+@theme {
+  /* ── Colores SportMatch ────────────────────────── */
+  --color-sm-green-50:  #f0fdf4;
+  --color-sm-green-100: #dcfce7;
+  --color-sm-green-200: #bbf7d0;
+  --color-sm-green-300: #86efac;
+  --color-sm-green-400: #4ade80;
+  --color-sm-green-500: #16b858;
+  --color-sm-green-600: #0d9046;
+  --color-sm-green-700: #0a6e38;
+  --color-sm-green-800: #166534;
+  --color-sm-green-900: #14532d;
+
+  --color-sm-dark: #0f1a12;
+
+  --color-sm-gray-50:  #f8faf9;
+  --color-sm-gray-100: #f0f4f1;
+  --color-sm-gray-200: #dce2de;
+  --color-sm-gray-300: #bfc9c4;
+  --color-sm-gray-400: #96a69e;
+  --color-sm-gray-500: #6b7f72;
+  --color-sm-gray-600: #556360;
+  --color-sm-gray-700: #45544b;
+  --color-sm-gray-800: #2d3830;
+  --color-sm-gray-900: #1a2219;
+
+  /* ── Tipografías ───────────────────────────────── */
+  --font-heading: 'Sora', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-sm-dark);
+  background-color: #fff;
+}
