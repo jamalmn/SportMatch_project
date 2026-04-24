@@ -30,7 +30,7 @@ export default function DashboardPage() {
 
     /* All requests fire in parallel; each resolves its own loading state */
 
-    api.get('/api/users/me/inscriptions?estado=confirmado&periodo=proximos&limit=5')
+    api.get('/api/users/me/inscriptions?estado=confirmed&periodo=proximos&limit=5')
       .then(res  => setUpcomingEvents(res.data.inscriptions ?? []))
       .catch(() => setUpcomingEvents([]))
       .finally(() => setLoadingUpcoming(false));

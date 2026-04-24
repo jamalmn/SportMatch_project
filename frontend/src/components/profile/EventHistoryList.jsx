@@ -151,7 +151,7 @@ export default function EventHistoryList({ type, userId, isOwnProfile }) {
         setLoading(false);
         return;
       }
-      request = api.get(`/api/users/me/inscriptions?estado=confirmado&page=1&limit=${LIMIT}`);
+      request = api.get(`/api/users/me/inscriptions?estado=confirmed&page=1&limit=${LIMIT}`);
     } else {
       request = api.get(`/api/users/${userId}/events?page=1&limit=${LIMIT}`);
     }
