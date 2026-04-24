@@ -40,7 +40,7 @@ export default function EventDetailPage() {
     ])
       .then(([evRes, insRes]) => {
         setEvent(evRes.data);
-        setInscriptions(insRes.data ?? []);
+        setInscriptions(insRes.data.inscriptions ?? []);
       })
       .catch(() => setError('No se pudo cargar el evento.'))
       .finally(() => setLoading(false));
@@ -91,7 +91,7 @@ export default function EventDetailPage() {
       api.get(`/api/events/${id}/inscriptions`),
     ]);
     setEvent(evRes.data);
-    setInscriptions(insRes.data ?? []);
+    setInscriptions(insRes.data.inscriptions ?? []);
   };
 
   const handleJoin = async () => {

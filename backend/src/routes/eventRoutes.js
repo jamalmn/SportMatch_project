@@ -83,7 +83,7 @@ router.put('/:eventId',    verifyToken, isOrganizer, updateEventValidators, upda
 router.delete('/:eventId', verifyToken, isOrganizer, deleteEvent);
 router.post('/:eventId/inscriptions',   verifyToken, joinEvent);
 router.delete('/:eventId/inscriptions', verifyToken, leaveEvent);
-router.get('/:eventId/inscriptions',    verifyToken, isOrganizer, getEventInscriptions);
+router.get('/:eventId/inscriptions',    verifyToken, getEventInscriptions);
 router.patch('/:eventId/inscriptions/:inscriptionId/attendance', verifyToken, isOrganizer, markAttendance);
 
 module.exports = router;
