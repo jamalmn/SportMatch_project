@@ -1,5 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import EventHeader from '../components/events/EventHeader';
@@ -98,7 +99,10 @@ export default function EventDetailPage() {
     try {
       await api.post(`/api/events/${id}/inscriptions`);
       await refreshData();
-    } catch { /* toast en iteración futura */ }
+      toast.success('Te has apuntado al evento.');
+    } catch {
+      toast.error('No se pudo completar la inscripción.');
+    }
   };
 
   const handleLeave = () => setModal({ open: true, type: 'leave' });
@@ -108,7 +112,10 @@ export default function EventDetailPage() {
     try {
       await api.delete(`/api/events/${id}/inscriptions`);
       await refreshData();
-    } catch { /* ignore */ }
+      toast.success('Inscripción cancelada.');
+    } catch {
+      toast.error('No se pudo cancelar la inscripción.');
+    }
   };
 
   const handleCancelEvent = () => setModal({ open: true, type: 'cancel' });
@@ -118,7 +125,9 @@ export default function EventDetailPage() {
     try {
       await api.delete(`/api/events/${id}`);
       navigate('/events');
-    } catch { /* ignore */ }
+    } catch {
+      toast.error('No se pudo cancelar el evento.');
+    }
   };
 
   const handleRate = () => navigate(`/ratings/new?event=${id}`);
