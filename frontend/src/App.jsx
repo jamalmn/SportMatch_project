@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/common/PrivateRoute';
 import LandingPage from './pages/LandingPage';
@@ -10,6 +12,8 @@ import EditEventPage from './pages/EditEventPage';
 import ProfilePage from './pages/ProfilePage';
 import PublicProfilePage from './pages/PublicProfilePage';
 import DashboardPage from './pages/DashboardPage';
+import NotificationsPage from './pages/NotificationsPage';
+import NotFoundPage from './pages/NotFoundPage';
 
 export default function App() {
   return (
@@ -27,7 +31,10 @@ export default function App() {
           <Route path="/events/:id/edit"   element={<PrivateRoute><EditEventPage /></PrivateRoute>} />
           <Route path="/profile"           element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
           <Route path="/profile/:id"       element={<PrivateRoute><PublicProfilePage /></PrivateRoute>} />
+          <Route path="/notifications"     element={<PrivateRoute><NotificationsPage /></PrivateRoute>} />
+          <Route path="*"                  element={<NotFoundPage />} />
         </Routes>
+        <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar closeOnClick />
       </AuthProvider>
     </BrowserRouter>
   );

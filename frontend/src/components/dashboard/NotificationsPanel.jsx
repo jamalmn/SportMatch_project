@@ -147,7 +147,7 @@ export default function NotificationsPanel({
         <span className="text-[11px] text-sm-gray-400">Actualización cada 30 seg</span>
         <button
           type="button"
-          onClick={() => navigate('/profile')}
+          onClick={() => navigate('/notifications')}
           className="text-[11px] font-semibold text-sm-green-600 hover:text-sm-green-700 transition-colors"
         >
           Ver todas
