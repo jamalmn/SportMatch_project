@@ -4,6 +4,7 @@ const { Op, Sequelize }                      = require('sequelize');
 const { validationResult }                   = require('express-validator');
 const { User, Event, Inscription, Notification } = require('../models');
 const { createError }                        = require('../middlewares/errorHandler');
+const { sendEventCancelledEmail }            = require('../services/emailService');
 
 async function getEvents(req, res, next) {
   try {
@@ -207,16 +208,28 @@ async function deleteEvent(req, res, next) {
       where: { evento_id: req.event.id, estado: ['confirmed', 'waiting'] },
     });
 
-    await Promise.all(inscriptions.map(inscripcion =>
-      Notification.create({
+    await Promise.all(inscriptions.map(async (inscripcion) => {
+      await Notification.create({
         usuario_id: inscripcion.usuario_id,
         evento_id:  req.event.id,
         tipo:       'evento_cancelado',
         titulo:     'Evento cancelado',
         mensaje:    `El evento "${req.event.titulo}" ha sido cancelado por el organizador.`,
         leida:      false,
-      })
-    ));
+      });
+
+      try {
+        const usuario = await User.findByPk(inscripcion.usuario_id, { attributes: ['nombre', 'email'] });
+        if (usuario) {
+          await sendEventCancelledEmail(
+            { name: usuario.nombre, email: usuario.email },
+            { title: req.event.titulo, date: req.event.fecha_hora, location: req.event.direccion, sport: req.event.deporte }
+          );
+        }
+      } catch (emailErr) {
+        console.error('[email] sendEventCancelledEmail:', emailErr.message);
+      }
+    }));
 
     return res.status(200).json({ message: 'Evento cancelado y eliminado correctamente' });
   } catch (err) {

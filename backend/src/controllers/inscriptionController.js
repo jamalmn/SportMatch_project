@@ -3,6 +3,11 @@
 const { Op }                                          = require('sequelize');
 const { sequelize, User, Event, Inscription, Notification } = require('../models');
 const { createError }                                       = require('../middlewares/errorHandler');
+const {
+  sendInscriptionConfirmedEmail,
+  sendInscriptionCancelledEmail,
+  sendWaitlistPromotedEmail,
+} = require('../services/emailService');
 
 async function joinEvent(req, res, next) {
   try {
@@ -66,6 +71,17 @@ async function joinEvent(req, res, next) {
       mensaje:    `Te has inscrito en "${evento.titulo}"`,
       leida:      false,
     });
+
+    if (hayPlaza) {
+      try {
+        await sendInscriptionConfirmedEmail(
+          { name: req.user.nombre, email: req.user.email },
+          { title: evento.titulo, date: evento.fecha_hora, location: evento.direccion, sport: evento.deporte }
+        );
+      } catch (emailErr) {
+        console.error('[email] sendInscriptionConfirmedEmail:', emailErr.message);
+      }
+    }
 
     const message = hayPlaza
       ? 'Inscripción confirmada correctamente'
@@ -147,7 +163,16 @@ async function leaveEvent(req, res, next) {
       }
     });
 
-    // 7. Notificación fuera de la transacción
+    // 7. Notificaciones y emails fuera de la transacción
+    try {
+      await sendInscriptionCancelledEmail(
+        { name: req.user.nombre, email: req.user.email },
+        { title: eventoRef.titulo, date: eventoRef.fecha_hora, location: eventoRef.direccion, sport: eventoRef.deporte }
+      );
+    } catch (emailErr) {
+      console.error('[email] sendInscriptionCancelledEmail:', emailErr.message);
+    }
+
     if (promovido) {
       await Notification.create({
         usuario_id: promovido.usuario_id,
@@ -157,6 +182,18 @@ async function leaveEvent(req, res, next) {
         mensaje:    `Hay una plaza libre en "${eventoRef.titulo}". Tu inscripción ha sido confirmada.`,
         leida:      false,
       });
+
+      try {
+        const promotedUser = await User.findByPk(promovido.usuario_id, { attributes: ['nombre', 'email'] });
+        if (promotedUser) {
+          await sendWaitlistPromotedEmail(
+            { name: promotedUser.nombre, email: promotedUser.email },
+            { title: eventoRef.titulo, date: eventoRef.fecha_hora, location: eventoRef.direccion, sport: eventoRef.deporte }
+          );
+        }
+      } catch (emailErr) {
+        console.error('[email] sendWaitlistPromotedEmail:', emailErr.message);
+      }
     }
 
     return res.status(200).json({
