@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 
@@ -58,13 +59,14 @@ export default function ProfileEditForm({ user, onSave, onCancel }) {
       });
       const updatedUser = res.data.user ?? res.data;
       login(updatedUser, token);
+      toast.success('Perfil actualizado.');
       onSave(updatedUser);
     } catch (err) {
-      setSubmitError(
-        err?.response?.data?.message
+      const msg = err?.response?.data?.message
         ?? err?.response?.data?.error
-        ?? 'Error al guardar los cambios. Inténtalo de nuevo.'
-      );
+        ?? 'Error al guardar los cambios. Inténtalo de nuevo.';
+      setSubmitError(msg);
+      toast.error(msg);
     }
   };
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import api from '../../services/api';
 import SportSelector from './SportSelector';
 import NivelSelector from './NivelSelector';
@@ -110,17 +111,19 @@ export default function EventForm({ mode = 'create', eventId, defaultValues }) {
 
       if (mode === 'create') {
         const res = await api.post('/api/events', payload);
+        toast.success('Evento creado correctamente.');
         navigate(`/events/${res.data.id}`);
       } else {
         await api.put(`/api/events/${eventId}`, payload);
+        toast.success('Cambios guardados.');
         navigate(`/events/${eventId}`);
       }
     } catch (err) {
-      setSubmitError(
-        err?.response?.data?.message
+      const msg = err?.response?.data?.message
         ?? err?.response?.data?.error
-        ?? 'Error al guardar el evento. Inténtalo de nuevo.'
-      );
+        ?? 'Error al guardar el evento. Inténtalo de nuevo.';
+      setSubmitError(msg);
+      toast.error(msg);
     }
   };
 
