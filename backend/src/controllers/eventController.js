@@ -9,8 +9,9 @@ const { sendEventCancelledEmail }            = require('../services/emailService
 async function getEvents(req, res, next) {
   try {
     const {
-      deporte, nivel_requerido, estado,
-      fecha_desde, fecha_hasta, con_plazas,
+      deporte, nivel, estado,
+      fecha, fecha_desde, fecha_hasta, con_plazas,
+      search,
       lat, lng, radio_km,
       sort_by, order,
     } = req.query;
@@ -27,13 +28,38 @@ async function getEvents(req, res, next) {
       where.estado = { [Op.notIn]: ['cancelado', 'finalizado'] };
     }
 
-    if (deporte)         where.deporte         = deporte;
-    if (nivel_requerido) where.nivel_requerido = nivel_requerido;
+    if (deporte) where.deporte         = deporte;
+    if (nivel)   where.nivel_requerido = nivel;
 
-    if (fecha_desde || fecha_hasta) {
+    if (search) {
+      const term = `%${search}%`;
+      where[Op.or] = [
+        { titulo:      { [Op.iLike]: term } },
+        { descripcion: { [Op.iLike]: term } },
+      ];
+    }
+
+    if (fecha || fecha_desde || fecha_hasta) {
       where.fecha_hora = {};
-      if (fecha_desde) where.fecha_hora[Op.gte] = new Date(fecha_desde);
-      if (fecha_hasta) where.fecha_hora[Op.lte] = new Date(fecha_hasta);
+      if (fecha) {
+        const now = new Date();
+        if (fecha === 'hoy') {
+          where.fecha_hora[Op.gte] = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          where.fecha_hora[Op.lt]  = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+        } else if (fecha === 'semana') {
+          const day  = now.getDay();
+          const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+          const lunes = new Date(now.getFullYear(), now.getMonth(), diff);
+          where.fecha_hora[Op.gte] = lunes;
+          where.fecha_hora[Op.lt]  = new Date(lunes.getFullYear(), lunes.getMonth(), lunes.getDate() + 7);
+        } else if (fecha === 'mes') {
+          where.fecha_hora[Op.gte] = new Date(now.getFullYear(), now.getMonth(), 1);
+          where.fecha_hora[Op.lt]  = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        }
+      } else {
+        if (fecha_desde) where.fecha_hora[Op.gte] = new Date(fecha_desde);
+        if (fecha_hasta) where.fecha_hora[Op.lte] = new Date(fecha_hasta);
+      }
     }
 
     if (con_plazas === 'true') {
