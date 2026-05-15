@@ -45,7 +45,24 @@ function ActionCard({ event, isOrganizer, isConfirmed, isWaiting, isPast, plazas
 
   let content;
 
-  if (isPast) {
+  if (event.estado === 'cancelado') {
+    content = (
+      <p className="text-sm text-center text-red-500 font-medium py-1">
+        Este evento ha sido cancelado
+      </p>
+    );
+  } else if (event.estado === 'finalizado') {
+    content = isConfirmed ? (
+      <button
+        onClick={onRate}
+        className="w-full py-2.5 rounded-full bg-sm-green-500 text-white text-sm font-semibold hover:bg-sm-green-600 transition-colors"
+      >
+        Valorar participantes
+      </button>
+    ) : (
+      <p className="text-sm text-center text-sm-gray-400">Este evento ha finalizado</p>
+    );
+  } else if (isPast) {
     content = isConfirmed ? (
       <button
         onClick={onRate}

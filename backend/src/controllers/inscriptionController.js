@@ -27,11 +27,11 @@ async function joinEvent(req, res, next) {
       return next(createError(403, 'El organizador no puede inscribirse en su propio evento', 'ORGANIZER_CANNOT_JOIN'));
     }
 
-    // 4. Inscripción activa existente
+    // 4. Comprobar inscripción existente (cualquier estado)
     const existing = await Inscription.findOne({
-      where: { evento_id: eventId, usuario_id: req.user.id, estado: ['confirmed', 'waiting'] },
+      where: { evento_id: eventId, usuario_id: req.user.id },
     });
-    if (existing) {
+    if (existing && existing.estado !== 'cancelled') {
       return next(createError(409, 'Ya tienes una inscripción activa en este evento', 'ALREADY_INSCRIBED'));
     }
 
@@ -47,10 +47,17 @@ async function joinEvent(req, res, next) {
 
     // 7. Transacción
     const inscription = await sequelize.transaction(async (t) => {
-      const ins = await Inscription.create(
-        { evento_id: eventId, usuario_id: req.user.id, estado, posicion_espera },
-        { transaction: t }
-      );
+      let ins;
+      if (existing) {
+        // Reutilizar la fila cancelada para no violar el UNIQUE (evento_id, usuario_id)
+        await existing.update({ estado, posicion_espera, asistio: null }, { transaction: t });
+        ins = existing;
+      } else {
+        ins = await Inscription.create(
+          { evento_id: eventId, usuario_id: req.user.id, estado, posicion_espera },
+          { transaction: t }
+        );
+      }
 
       if (hayPlaza) {
         await evento.increment('aforo_actual', { transaction: t });

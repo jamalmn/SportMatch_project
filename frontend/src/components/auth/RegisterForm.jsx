@@ -42,6 +42,8 @@ export default function RegisterForm({ onSwitch }) {
     } catch (err) {
       if (err.response?.status === 409) {
         setError('email', { message: 'Este email ya está registrado' });
+      } else if (err.response?.status === 400) {
+        setGlobalError(err.response.data?.message ?? 'Datos inválidos. Revisa el formulario.');
       } else {
         setGlobalError('Error de conexión. Inténtalo de nuevo.');
       }
@@ -130,7 +132,7 @@ export default function RegisterForm({ onSwitch }) {
               type={showPassword ? 'text' : 'password'}
               {...register('password', {
                 required: 'La contraseña es obligatoria',
-                minLength: { value: 6, message: 'Mínimo 6 caracteres' },
+                minLength: { value: 8, message: 'Mínimo 8 caracteres' },
               })}
               placeholder="••••••••"
               className={inputClass(errors.password).replace('w-full', 'w-full pr-11')}

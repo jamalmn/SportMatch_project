@@ -112,7 +112,7 @@ export default function EventForm({ mode = 'create', eventId, defaultValues }) {
       if (mode === 'create') {
         const res = await api.post('/api/events', payload);
         toast.success('Evento creado correctamente.');
-        navigate(`/events/${res.data.id}`);
+        navigate(`/events/${res.data.event.id}`);
       } else {
         await api.put(`/api/events/${eventId}`, payload);
         toast.success('Cambios guardados.');
@@ -146,7 +146,8 @@ export default function EventForm({ mode = 'create', eventId, defaultValues }) {
               <input
                 {...register('titulo', {
                   required: 'El título es obligatorio',
-                  maxLength: { value: 80, message: 'Máximo 80 caracteres' },
+                  minLength: { value: 5,   message: 'Mínimo 5 caracteres' },
+                  maxLength: { value: 150, message: 'Máximo 150 caracteres' },
                 })}
                 placeholder="Partido de fútbol en el parque"
                 className={errors.titulo ? INPUT_ERROR : INPUT_NORMAL}
@@ -159,7 +160,8 @@ export default function EventForm({ mode = 'create', eventId, defaultValues }) {
               <textarea
                 {...register('descripcion', {
                   required: 'La descripción es obligatoria',
-                  maxLength: { value: 500, message: 'Máximo 500 caracteres' },
+                  minLength: { value: 10,   message: 'Mínimo 10 caracteres' },
+                  maxLength: { value: 2000, message: 'Máximo 2000 caracteres' },
                 })}
                 rows={4}
                 placeholder="Describe el evento, qué se necesita, nivel mínimo..."
@@ -168,7 +170,7 @@ export default function EventForm({ mode = 'create', eventId, defaultValues }) {
               <div className="flex justify-between items-start">
                 <FieldError message={errors.descripcion?.message} />
                 <span className="text-xs text-sm-gray-300 ml-auto mt-1">
-                  {(watch('descripcion') ?? '').length}/500
+                  {(watch('descripcion') ?? '').length}/2000
                 </span>
               </div>
             </div>
@@ -246,7 +248,7 @@ export default function EventForm({ mode = 'create', eventId, defaultValues }) {
                 {...register('aforo_maximo', {
                   required: 'El aforo es obligatorio',
                   min: { value: 2, message: 'Mínimo 2 participantes' },
-                  max: { value: 200, message: 'Máximo 200 participantes' },
+                  max: { value: 500, message: 'Máximo 500 participantes' },
                 })}
                 placeholder="10"
                 className={errors.aforo_maximo ? INPUT_ERROR : INPUT_NORMAL}

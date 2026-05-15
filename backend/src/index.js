@@ -56,6 +56,7 @@ app.use(errorHandler);
 // ─── Conexión DB + arranque ──────────────────────────────────────────────────
 sequelize
   .authenticate()
+  .then(() => sequelize.sync())
   .then(() => {
     app.listen(PORT, () => {
       console.log(`Servidor escuchando en el puerto ${PORT}`);

@@ -30,12 +30,12 @@ export default function ProfilePage() {
     setError(null);
 
     Promise.all([
-      api.get(`/api/users/${user.id}/inscriptions?limit=3`),
+      api.get('/api/users/me/inscriptions?limit=3'),
       api.get(`/api/ratings?valorado_id=${user.id}&limit=3`),
     ])
       .then(([insRes, ratRes]) => {
-        setInscriptions(insRes.data ?? []);
-        setRatings(ratRes.data ?? []);
+        setInscriptions(insRes.data.inscriptions ?? []);
+        setRatings(ratRes.data.ratings ?? []);
       })
       .catch(() => setError('No se pudo cargar la información del perfil.'))
       .finally(() => setLoading(false));

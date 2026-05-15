@@ -111,10 +111,15 @@ export default function EventDetailPage() {
     setModal({ open: false, type: null });
     try {
       await api.delete(`/api/events/${id}/inscriptions`);
-      await refreshData();
-      toast.success('Inscripción cancelada.');
     } catch {
       toast.error('No se pudo cancelar la inscripción.');
+      return;
+    }
+    toast.success('Inscripción cancelada.');
+    try {
+      await refreshData();
+    } catch {
+      /* La cancelación se realizó; si falla el refresco se ignora silenciosamente */
     }
   };
 
