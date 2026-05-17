@@ -17,3 +17,9 @@ Thumbs.db
 
 # Docker volumes
 postgres_data/
+
+# Documentación local (no forma parte del repositorio)
+*.md
+
+# Configuración local de Claude Code
+.claude/

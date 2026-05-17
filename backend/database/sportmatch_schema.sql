@@ -308,101 +308,22 @@ CREATE INDEX idx_notifications_usuario
 
 -- =============================================================
 --  DATOS DE PRUEBA
---  Insertar en orden respetando las foreign keys.
+--
+--  Los datos de prueba se insertan con el script de Node.js,
+--  que usa bcrypt para generar hashes reales. NO insertar
+--  usuarios directamente en SQL: los hashes ficticios impiden
+--  el login.
+--
+--  Desde el directorio backend/:
+--    npm run seed
+--  o bien:
+--    node src/database/seed.js
+--
+--  Credenciales resultantes (3 usuarios, misma contraseña):
+--    juan@sportmatch.com   / Test1234!
+--    maria@sportmatch.com  / Test1234!
+--    carlos@sportmatch.com / Test1234!
 -- =============================================================
-
--- ---- Usuarios ----
-INSERT INTO users (id, email, password_hash, nombre, apellidos, ubicacion, ubicacion_lat, ubicacion_lng, deportes_favoritos, nivel)
-VALUES
-    ('a1000000-0000-0000-0000-000000000001',
-     'carlos@example.com',
-     '$2b$10$hashedpassword1',
-     'Carlos', 'García López',
-     'Murcia', 37.9922, -1.1307,
-     ARRAY['fútbol', 'baloncesto'],
-     'intermedio'),
-
-    ('a1000000-0000-0000-0000-000000000002',
-     'laura@example.com',
-     '$2b$10$hashedpassword2',
-     'Laura', 'Martínez Ruiz',
-     'Murcia', 37.9841, -1.1284,
-     ARRAY['pádel', 'tenis'],
-     'avanzado'),
-
-    ('a1000000-0000-0000-0000-000000000003',
-     'miguel@example.com',
-     '$2b$10$hashedpassword3',
-     'Miguel', 'Sánchez Torres',
-     'Murcia', 37.9910, -1.1350,
-     ARRAY['fútbol'],
-     'principiante');
-
-
--- ---- Eventos ----
-INSERT INTO events (id, organizador_id, titulo, descripcion, deporte, ubicacion_lat, ubicacion_lng, direccion, fecha_hora, duracion_minutos, aforo_maximo, aforo_actual, nivel_requerido, estado)
-VALUES
-    ('b2000000-0000-0000-0000-000000000001',
-     'a1000000-0000-0000-0000-000000000001',
-     'Partido de fútbol 7 — Sábado tarde',
-     'Partido amistoso en el polideportivo municipal. Llevad petos.',
-     'fútbol',
-     37.9930, -1.1290,
-     'Polideportivo La Flota, Murcia',
-     NOW() + INTERVAL '3 days',
-     90, 14, 1,
-     'principiante', 'abierto'),
-
-    ('b2000000-0000-0000-0000-000000000002',
-     'a1000000-0000-0000-0000-000000000002',
-     'Dobles de pádel — nivel medio-alto',
-     'Buscamos dos jugadores para completar dos parejas. Pista cubierta.',
-     'pádel',
-     37.9855, -1.1310,
-     'Club de Pádel Murcia Centro',
-     NOW() + INTERVAL '5 days',
-     60, 4, 2,
-     'intermedio', 'abierto');
-
-
--- ---- Inscripciones ----
--- Carlos organiza fútbol, también se inscribe como participante
-INSERT INTO inscriptions (evento_id, usuario_id, estado, asistio)
-VALUES
-    ('b2000000-0000-0000-0000-000000000001',
-     'a1000000-0000-0000-0000-000000000001',
-     'confirmed', NULL),
-
--- Miguel se apunta al partido de fútbol
-    ('b2000000-0000-0000-0000-000000000001',
-     'a1000000-0000-0000-0000-000000000003',
-     'confirmed', NULL),
-
--- Carlos se apunta al pádel de Laura
-    ('b2000000-0000-0000-0000-000000000002',
-     'a1000000-0000-0000-0000-000000000001',
-     'confirmed', NULL),
-
--- Laura (organizadora) se incluye en su propio evento de pádel
-    ('b2000000-0000-0000-0000-000000000002',
-     'a1000000-0000-0000-0000-000000000002',
-     'confirmed', NULL);
-
-
--- ---- Notificaciones ----
-INSERT INTO notifications (usuario_id, evento_id, tipo, titulo, mensaje)
-VALUES
-    ('a1000000-0000-0000-0000-000000000003',
-     'b2000000-0000-0000-0000-000000000001',
-     'inscripcion_confirmada',
-     'Inscripción confirmada',
-     'Tu inscripción al evento "Partido de fútbol 7 — Sábado tarde" ha sido confirmada.'),
-
-    ('a1000000-0000-0000-0000-000000000001',
-     'b2000000-0000-0000-0000-000000000002',
-     'inscripcion_confirmada',
-     'Inscripción confirmada',
-     'Tu inscripción al evento "Dobles de pádel — nivel medio-alto" ha sido confirmada.');
 
 
 -- =============================================================

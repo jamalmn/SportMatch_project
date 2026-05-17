@@ -2,7 +2,7 @@
 
 const { Router } = require('express');
 const { body }   = require('express-validator');
-const { register, login, logout } = require('../controllers/authController');
+const { register, login, logout, refreshToken } = require('../controllers/authController');
 const { verifyToken } = require('../middlewares/authMiddleware');
 
 const router = Router();
@@ -29,8 +29,14 @@ const loginValidators = [
     .notEmpty().withMessage('La contraseña es obligatoria'),
 ];
 
+const refreshValidators = [
+  body('refreshToken').notEmpty().withMessage('El refresh token es obligatorio'),
+];
+
 router.post('/register', registerValidators, register);
 router.post('/login',    loginValidators,    login);
 router.post('/logout',   verifyToken,        logout);
+// Sin verifyToken: el refresh token es la credencial de autenticación en este endpoint
+router.post('/refresh',  refreshValidators,  refreshToken);
 
 module.exports = router;

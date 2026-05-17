@@ -216,6 +216,24 @@ async function updateEvent(req, res, next) {
 
     await req.event.update(fields);
 
+    // Notificar a participantes confirmados solo si hubo cambios reales
+    if (Object.keys(fields).length > 0) {
+      const inscriptions = await Inscription.findAll({
+        where: { evento_id: req.event.id, estado: 'confirmed' },
+      });
+
+      await Promise.all(inscriptions.map((ins) =>
+        Notification.create({
+          usuario_id: ins.usuario_id,
+          evento_id:  req.event.id,
+          tipo:       'evento_actualizado',
+          titulo:     'Evento actualizado',
+          mensaje:    `El evento "${req.event.titulo}" ha sido modificado por el organizador.`,
+          leida:      false,
+        })
+      ));
+    }
+
     return res.status(200).json({ message: 'Evento actualizado correctamente', event: req.event });
   } catch (err) {
     next(err);

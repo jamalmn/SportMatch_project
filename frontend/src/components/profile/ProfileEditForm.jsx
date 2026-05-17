@@ -50,7 +50,7 @@ export default function ProfileEditForm({ user, onSave, onCancel }) {
   const onSubmit = async (data) => {
     setSubmitError(null);
     try {
-      const res = await api.put(`/api/users/${user.id}`, {
+      const res = await api.put('/api/users/me', {
         nombre:    data.nombre,
         apellidos: data.apellidos,
         ubicacion: data.ubicacion || null,

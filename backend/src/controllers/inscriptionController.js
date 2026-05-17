@@ -22,7 +22,7 @@ async function joinEvent(req, res, next) {
       return next(createError(409, 'No es posible inscribirse en este evento', 'EVENT_NOT_OPEN'));
     }
 
-    // 3. El organizador no puede inscribirse
+    // 3. Regla de negocio: un organizador no puede inscribirse en su propio evento
     if (evento.organizador_id === req.user.id) {
       return next(createError(403, 'El organizador no puede inscribirse en su propio evento', 'ORGANIZER_CANNOT_JOIN'));
     }

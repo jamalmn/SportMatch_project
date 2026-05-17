@@ -20,15 +20,19 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const login = (userData, authToken) => {
+  const login = (userData, authToken, authRefreshToken = null) => {
     localStorage.setItem('token', authToken);
     localStorage.setItem('user', JSON.stringify(userData));
+    if (authRefreshToken) {
+      localStorage.setItem('refreshToken', authRefreshToken);
+    }
     setToken(authToken);
     setUser(userData);
   };
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
     setToken(null);
     setUser(null);

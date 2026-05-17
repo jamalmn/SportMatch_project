@@ -1,6 +1,7 @@
 'use strict';
 
 const path = require('path');
+// .env está en la raíz del repo (TFG_JMH/), tres niveles por encima de backend/src/config/
 require('dotenv').config({ path: path.resolve(__dirname, '../../../.env') });
 const { Sequelize } = require('sequelize');
 

@@ -1,13 +1,15 @@
 'use strict';
 
 const path = require('path');
+// .env está en la raíz del repo (TFG_JMH/), dos niveles por encima de backend/src/
 require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
+process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
 const express = require('express');
 const cors    = require('cors');
 const helmet  = require('helmet');
 
-const { sequelize }   = require('./models');
+const { sequelize }    = require('./models');
 const { errorHandler } = require('./middlewares/errorHandler');
 
 const app  = express();
@@ -25,41 +27,42 @@ app.get('/api/health', (_req, res) => {
 });
 
 // ─── Rutas ───────────────────────────────────────────────────────────────────
-const authRoutes =
-  require('./routes/authRoutes');
+app.use('/api/auth',          require('./routes/authRoutes'));
+app.use('/api/users',         require('./routes/userRoutes'));
+app.use('/api/events',        require('./routes/eventRoutes'));
+app.use('/api/ratings',       require('./routes/ratingRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
 
-const userRoutes =
-  require('./routes/userRoutes');
-
-const eventRoutes =
-  require('./routes/eventRoutes');
-
-const ratingRoutes =
-  require('./routes/ratingRoutes');
-
-const notificationRoutes =
-  require('./routes/notificationRoutes');
-
-// RUTAS
-app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/events', eventRoutes);
-app.use('/api/ratings', ratingRoutes);
-app.use('/api/notifications', notificationRoutes);
-
-
-
-// ERROR HANDLER
+// ─── Error handler ───────────────────────────────────────────────────────────
 app.use(errorHandler);
 
+// ─── Estrategia de sincronización según entorno ──────────────────────────────
+// test:        force:true  — recrea tablas en cada ejecución (BD limpia para tests)
+// development: alter:true  — crea/actualiza tablas sin borrar datos (onboarding sin SQL manual)
+// production:  sin sync    — el esquema se gestiona con backend/database/sportmatch_schema.sql
+function getSyncOptions() {
+  switch (process.env.NODE_ENV) {
+    case 'test':        return { force: true };
+    case 'development': return { alter: true };
+    default:            return null;
+  }
+}
 
 // ─── Conexión DB + arranque ──────────────────────────────────────────────────
 sequelize
   .authenticate()
-  .then(() => sequelize.sync())
   .then(() => {
+    const syncOpts = getSyncOptions();
+    return syncOpts ? sequelize.sync(syncOpts) : Promise.resolve();
+  })
+  .then(() => {
+    // Scheduler de recordatorios automáticos (no aplica en tests)
+    if (process.env.NODE_ENV !== 'test') {
+      require('./services/schedulerService');
+    }
+
     app.listen(PORT, () => {
-      console.log(`Servidor escuchando en el puerto ${PORT}`);
+      console.log(`[${process.env.NODE_ENV}] Servidor escuchando en el puerto ${PORT}`);
     });
   })
   .catch((err) => {

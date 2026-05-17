@@ -22,7 +22,7 @@ export default function LoginForm({ onSwitch }) {
     setIsLoading(true);
     try {
       const res = await authService.login(data.email, data.password);
-      login(res.data.user, res.data.token);
+      login(res.data.user, res.data.token, res.data.refreshToken);
       navigate('/dashboard');
     } catch (err) {
       if (err.response?.status === 401) {

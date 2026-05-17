@@ -1,5 +1,17 @@
 'use strict';
 
+// =============================================================
+//  USUARIOS DE PRUEBA — credenciales válidas para el login
+//
+//  Email                   Contraseña  Nivel
+//  juan@sportmatch.com     Test1234!   intermedio
+//  maria@sportmatch.com    Test1234!   principiante
+//  carlos@sportmatch.com   Test1234!   avanzado
+//
+//  AVISO: este script hace TRUNCATE de todas las tablas antes
+//  de insertar. Usar solo en entornos de desarrollo.
+// =============================================================
+
 const bcrypt = require('bcryptjs');
 const { sequelize, User, Event, Inscription, Rating, Notification } = require('../models');
 
@@ -204,6 +216,10 @@ function buildEvents(users) {
 async function seed() {
   try {
     await sequelize.authenticate();
+
+    // Crea las tablas si no existen (primera ejecución sin SQL manual previo).
+    // No usa force ni alter para no destruir datos en ejecuciones posteriores.
+    await sequelize.sync();
 
     // 1. Limpiar en orden (FK safe)
     await sequelize.query(

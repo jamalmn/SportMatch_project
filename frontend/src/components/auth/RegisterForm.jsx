@@ -37,7 +37,7 @@ export default function RegisterForm({ onSwitch }) {
         nivel: data.nivel,
         deportes_favoritos: selectedSports,
       });
-      login(res.data.user, res.data.token);
+      login(res.data.user, res.data.token, res.data.refreshToken);
       navigate('/dashboard');
     } catch (err) {
       if (err.response?.status === 409) {
