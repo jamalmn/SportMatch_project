@@ -7,7 +7,32 @@
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "seed": "node src/database/seed.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "cross-env NODE_ENV=test jest --runInBand",
+    "test:watch": "cross-env NODE_ENV=test jest --runInBand --watch",
+    "test:coverage": "cross-env NODE_ENV=test jest --runInBand --coverage"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
+    "setupFilesAfterEnv": [
+      "./tests/setup.js"
+    ],
+    "passWithNoTests": true,
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/index.js",
+      "!src/database/seed.js",
+      "!src/services/emailService.js",
+      "!src/services/schedulerService.js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "lines": 70,
+        "functions": 70
+      }
+    }
   },
   "keywords": [],
   "author": "",
@@ -28,6 +53,10 @@
     "sequelize": "^6.37.8"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "@jest/globals": "^30.4.1",
+    "cross-env": "^10.1.0",
+    "jest": "^30.4.2",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.2.2"
   }
 }

@@ -5,36 +5,10 @@ const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
-const express = require('express');
-const cors    = require('cors');
-const helmet  = require('helmet');
+const app = require('./app');
+const { sequelize } = require('./models');
 
-const { sequelize }    = require('./models');
-const { errorHandler } = require('./middlewares/errorHandler');
-
-const app  = express();
 const PORT = process.env.PORT || 5000;
-
-// ─── Middlewares globales ────────────────────────────────────────────────────
-app.use(helmet());
-app.use(cors({ origin: process.env.FRONTEND_URL || '*' }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// ─── Health check ────────────────────────────────────────────────────────────
-app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date() });
-});
-
-// ─── Rutas ───────────────────────────────────────────────────────────────────
-app.use('/api/auth',          require('./routes/authRoutes'));
-app.use('/api/users',         require('./routes/userRoutes'));
-app.use('/api/events',        require('./routes/eventRoutes'));
-app.use('/api/ratings',       require('./routes/ratingRoutes'));
-app.use('/api/notifications', require('./routes/notificationRoutes'));
-
-// ─── Error handler ───────────────────────────────────────────────────────────
-app.use(errorHandler);
 
 // ─── Estrategia de sincronización según entorno ──────────────────────────────
 // test:        force:true  — recrea tablas en cada ejecución (BD limpia para tests)
