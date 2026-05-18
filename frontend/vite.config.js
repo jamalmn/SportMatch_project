@@ -10,6 +10,24 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/tests/setup.js'],
-    coverage: { provider: 'v8', reporter: ['text', 'html'] },
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html'],
+      exclude: [
+        // entry points & config — no lógica de negocio testable
+        'src/main.jsx',
+        'src/App.jsx',
+        'src/services/api.js',
+        'src/services/authService.js',
+        'src/utils/sportEmoji.js',
+        // infraestructura de contexto y layout — testeados indirectamente
+        'src/context/AuthContext.jsx',
+        'src/components/layout/Navbar.jsx',
+      ],
+      thresholds: {
+        lines: 60,
+        functions: 60,
+      },
+    },
   },
 })
