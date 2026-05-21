@@ -12,12 +12,13 @@ const PORT = process.env.PORT || 5000;
 
 // ─── Estrategia de sincronización según entorno ──────────────────────────────
 // test:        force:true  — recrea tablas en cada ejecución (BD limpia para tests)
-// development: alter:true  — crea/actualiza tablas sin borrar datos (onboarding sin SQL manual)
+// development: {}          — crea tablas que falten pero NO altera las existentes
+//                            (evita conflictos de nombres de ENUM entre SQL manual y Sequelize)
 // production:  sin sync    — el esquema se gestiona con backend/database/sportmatch_schema.sql
 function getSyncOptions() {
   switch (process.env.NODE_ENV) {
     case 'test':        return { force: true };
-    case 'development': return { alter: true };
+    case 'development': return {};
     default:            return null;
   }
 }

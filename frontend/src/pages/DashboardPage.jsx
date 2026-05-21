@@ -86,6 +86,15 @@ export default function DashboardPage() {
                 loading={loadingRecommended}
                 userSports={user?.deportes_favoritos ?? []}
               />
+              {/* Notificaciones: solo visible en móvil/tablet (en desktop van en la columna derecha) */}
+              <div className="lg:hidden">
+                <NotificationsPanel
+                  notifications={notifications}
+                  loading={loadingNotifications}
+                  unreadCount={noLeidas}
+                  onUnreadChange={setNoLeidas}
+                />
+              </div>
             </div>
 
             {/* ── Right column (sticky) ─────────────────────────────────── */}

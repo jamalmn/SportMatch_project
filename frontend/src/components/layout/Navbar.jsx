@@ -140,6 +140,7 @@ export default function Navbar() {
             <>
               <Link to="/events" className="block text-sm-gray-700 font-medium py-1" onClick={() => setMenuOpen(false)}>Eventos</Link>
               <Link to="/dashboard" className="block text-sm-gray-700 font-medium py-1" onClick={() => setMenuOpen(false)}>Dashboard</Link>
+              <Link to="/notifications" className="block text-sm-gray-700 font-medium py-1" onClick={() => setMenuOpen(false)}>Notificaciones</Link>
               <Link to="/profile" className="block text-sm-gray-700 font-medium py-1" onClick={() => setMenuOpen(false)}>Ver perfil</Link>
               <button onClick={() => { handleLogout(); setMenuOpen(false); }} className="block text-red-600 font-medium py-1 text-left">
                 Cerrar sesión
