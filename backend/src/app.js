@@ -9,7 +9,24 @@ const { errorHandler } = require('./middlewares/errorHandler');
 const app = express();
 
 app.use(helmet());
-app.use(cors({ origin: process.env.FRONTEND_URL || '*' }));
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    const allowed = [
+      process.env.FRONTEND_URL,
+      /\.vercel\.app$/,
+    ];
+    if (!origin || allowed.some(a =>
+      typeof a === 'string' ? a === origin : a.test(origin)
+    )) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
