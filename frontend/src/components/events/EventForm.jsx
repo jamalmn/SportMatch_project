@@ -7,7 +7,7 @@ import SportSelector from './SportSelector';
 import NivelSelector from './NivelSelector';
 import LocationPicker from './LocationPicker';
 import EventPreviewCard from './EventPreviewCard';
-import ValidationChecklist, { useAllValid } from './ValidationChecklist';
+import ValidationChecklist from './ValidationChecklist';
 
 /* ── Shared field styles ────────────────────────────────────────────────── */
 
@@ -127,13 +127,29 @@ export default function EventForm({ mode = 'create', eventId, defaultValues }) {
     }
   };
 
+  /* Called by RHF when submit is blocked by validation errors.
+     Receives the errors object so we can log and scroll to the first failure. */
+  const onError = (validationErrors) => {
+    console.log('[EventForm] Errores de validación RHF:', validationErrors);
+    toast.warning('Revisa los campos marcados en rojo antes de continuar.', {
+      toastId: 'form-validation-error',
+    });
+    // Wait two animation frames so React has committed the error <p> elements
+    // to the DOM before we try to scroll to them.
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        const firstErrorEl = document.querySelector('p.text-red-500');
+        firstErrorEl?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      })
+    );
+  };
+
   const watchedValues = watch();
-  const allValid = useAllValid(watchedValues);
 
   /* ── Render ─────────────────────────────────────────────────────────── */
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate>
+    <form onSubmit={handleSubmit(onSubmit, onError)} noValidate>
       <div className="lg:grid lg:grid-cols-[1fr_280px] lg:gap-6 space-y-4 lg:space-y-0">
 
         {/* ── Left column: form sections ─────────────────────────────── */}
@@ -202,8 +218,11 @@ export default function EventForm({ mode = 'create', eventId, defaultValues }) {
                   {...register('fecha', {
                     required: 'La fecha es obligatoria',
                     validate: v => {
-                      const hora = watch('hora');
+                      // In edit mode the backend validates the date; skip here
+                      // to avoid false blocks on events that passed without auto-finalization.
+                      if (mode === 'edit') return true;
                       if (!v) return true;
+                      const hora = watch('hora');
                       const dt = new Date(`${v}T${hora || '00:00'}`);
                       return dt > new Date() || 'La fecha debe ser futura';
                     },
@@ -280,7 +299,7 @@ export default function EventForm({ mode = 'create', eventId, defaultValues }) {
               control={control}
               rules={{
                 validate: v =>
-                  (v?.lat != null && v?.lng != null && v?.direccion)
+                  (v?.lat != null && v?.lng != null && !!v?.direccion)
                     || 'Busca una dirección o arrastra el marcador en el mapa',
               }}
               render={({ field }) => (
@@ -307,7 +326,7 @@ export default function EventForm({ mode = 'create', eventId, defaultValues }) {
           {/* Submit button */}
           <button
             type="submit"
-            disabled={isSubmitting || !allValid}
+            disabled={isSubmitting}
             className="w-full py-3 rounded-full bg-sm-green-500 text-white font-semibold text-sm hover:bg-sm-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting

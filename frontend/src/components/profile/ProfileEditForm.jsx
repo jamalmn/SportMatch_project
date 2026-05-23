@@ -47,6 +47,20 @@ export default function ProfileEditForm({ user, onSave, onCancel }) {
 
   const bioLength = (watch('bio') ?? '').length;
 
+  /* Called by RHF when submit is blocked by validation errors */
+  const onError = (validationErrors) => {
+    console.log('[ProfileEditForm] Errores de validación RHF:', validationErrors);
+    toast.warning('Revisa los campos marcados en rojo antes de continuar.', {
+      toastId: 'form-validation-error',
+    });
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        document.querySelector('p.text-red-500, .border-red-300')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      })
+    );
+  };
+
   const onSubmit = async (data) => {
     setSubmitError(null);
     try {
@@ -74,7 +88,7 @@ export default function ProfileEditForm({ user, onSave, onCancel }) {
     <div className="bg-white border border-sm-gray-200 rounded-2xl p-6 space-y-5">
       <h2 className="font-heading font-semibold text-sm-dark text-base">Editar perfil</h2>
 
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit, onError)} noValidate className="space-y-4">
 
         {/* Nombre + Apellidos */}
         <div className="grid grid-cols-2 gap-3">
@@ -126,7 +140,7 @@ export default function ProfileEditForm({ user, onSave, onCancel }) {
           <Label>Bio</Label>
           <textarea
             {...register('bio', {
-              maxLength: { value: 300, message: 'Máximo 300 caracteres' },
+              maxLength: { value: 500, message: 'Máximo 500 caracteres' },
             })}
             rows={4}
             placeholder="Cuéntanos algo sobre ti..."
@@ -134,8 +148,8 @@ export default function ProfileEditForm({ user, onSave, onCancel }) {
           />
           <div className="flex justify-between items-start mt-0.5">
             <FieldError message={errors.bio?.message} />
-            <span className={`text-xs ml-auto ${bioLength > 280 ? 'text-amber-500' : 'text-sm-gray-300'}`}>
-              {bioLength}/300
+            <span className={`text-xs ml-auto ${bioLength > 450 ? 'text-amber-500' : 'text-sm-gray-300'}`}>
+              {bioLength}/500
             </span>
           </div>
         </div>

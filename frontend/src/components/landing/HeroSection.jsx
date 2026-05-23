@@ -1,6 +1,9 @@
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 export default function HeroSection() {
+  const { user } = useAuth();
+
   return (
     <section className="py-20 sm:py-32 bg-white">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
@@ -23,12 +26,21 @@ export default function HeroSection() {
 
         {/* CTAs */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-10">
-          <Link
-            to="/register"
-            className="w-full sm:w-auto px-6 py-3 text-base font-semibold text-white bg-sm-green-500 rounded-xl hover:bg-sm-green-600 transition-colors shadow-sm"
-          >
-            Empezar — es gratis
-          </Link>
+          {user ? (
+            <Link
+              to="/dashboard"
+              className="w-full sm:w-auto px-6 py-3 text-base font-semibold text-white bg-sm-green-500 rounded-xl hover:bg-sm-green-600 transition-colors shadow-sm"
+            >
+              Ir al dashboard →
+            </Link>
+          ) : (
+            <Link
+              to="/register"
+              className="w-full sm:w-auto px-6 py-3 text-base font-semibold text-white bg-sm-green-500 rounded-xl hover:bg-sm-green-600 transition-colors shadow-sm"
+            >
+              Empezar — es gratis
+            </Link>
+          )}
           <Link
             to="/events"
             className="w-full sm:w-auto px-6 py-3 text-base font-semibold text-sm-gray-700 border border-sm-gray-200 rounded-xl hover:bg-sm-gray-50 transition-colors"

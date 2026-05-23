@@ -98,10 +98,12 @@ function OrganizedRow({ event, isOwnProfile, onClick, onEdit }) {
   const emoji = SPORT_EMOJI[sport] ?? '🏅';
 
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
-      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-sm-gray-50 transition-colors text-left"
+      onKeyDown={(e) => e.key === 'Enter' && onClick()}
+      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-sm-gray-50 transition-colors text-left cursor-pointer"
     >
       <span className="w-8 h-8 rounded-xl bg-sm-green-50 flex items-center justify-center text-lg shrink-0">
         {emoji}
@@ -125,7 +127,7 @@ function OrganizedRow({ event, isOwnProfile, onClick, onEdit }) {
           </button>
         )}
       </div>
-    </button>
+    </div>
   );
 }
 

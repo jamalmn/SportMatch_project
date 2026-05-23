@@ -13,6 +13,7 @@ import ProfilePage from './pages/ProfilePage';
 import PublicProfilePage from './pages/PublicProfilePage';
 import DashboardPage from './pages/DashboardPage';
 import NotificationsPage from './pages/NotificationsPage';
+import RateEventPage from './pages/RateEventPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 export default function App() {
@@ -29,6 +30,7 @@ export default function App() {
           <Route path="/events/create"     element={<PrivateRoute><CreateEventPage /></PrivateRoute>} />
           <Route path="/events/:id"        element={<PrivateRoute><EventDetailPage /></PrivateRoute>} />
           <Route path="/events/:id/edit"   element={<PrivateRoute><EditEventPage /></PrivateRoute>} />
+          <Route path="/events/:id/rate"   element={<PrivateRoute><RateEventPage /></PrivateRoute>} />
           <Route path="/profile"           element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
           <Route path="/profile/:id"       element={<PrivateRoute><PublicProfilePage /></PrivateRoute>} />
           <Route path="/notifications"     element={<PrivateRoute><NotificationsPage /></PrivateRoute>} />

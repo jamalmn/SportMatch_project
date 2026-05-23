@@ -135,11 +135,28 @@ export default function EventDetailPage() {
     }
   };
 
-  const handleRate = () => navigate(`/ratings/new?event=${id}`);
+  const handleRate = () => navigate(`/events/${id}/rate`);
 
   return (
     <>
     <main className="max-w-5xl mx-auto px-4 py-8">
+
+      {/* Back button */}
+      <button
+        onClick={() => navigate(-1)}
+        className="inline-flex items-center gap-1.5 mb-5 text-sm text-sm-gray-500 hover:text-sm-dark transition-colors group"
+      >
+        <svg
+          className="w-4 h-4 transition-transform group-hover:-translate-x-0.5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+        Volver
+      </button>
+
       <div className="lg:grid lg:grid-cols-[1fr_320px] lg:gap-8">
         {/* Main column */}
         <div className="space-y-6">
