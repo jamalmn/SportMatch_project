@@ -5,6 +5,7 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(true); // 👈 nuevo
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
@@ -18,6 +19,7 @@ export function AuthProvider({ children }) {
         localStorage.removeItem('user');
       }
     }
+    setLoading(false); // 👈 siempre al final, haya token o no
   }, []);
 
   const login = (userData, authToken, authRefreshToken = null) => {
@@ -41,7 +43,7 @@ export function AuthProvider({ children }) {
   const isAuthenticated = Boolean(user && token);
 
   return (
-    <AuthContext.Provider value={{ user, token, isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ user, token, isAuthenticated, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
@@ -49,7 +51,7 @@ export function AuthProvider({ children }) {
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) return { user: null, token: null, isAuthenticated: false, login: () => {}, logout: () => {} };
+  if (!ctx) return { user: null, token: null, isAuthenticated: false, loading: true, login: () => { }, logout: () => { } };
   return ctx;
 }
 
