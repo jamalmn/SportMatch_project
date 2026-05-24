@@ -7,6 +7,7 @@ import EventHeader from '../components/events/EventHeader';
 import ParticipantsList from '../components/events/ParticipantsList';
 import ActionSidebar from '../components/events/ActionSidebar';
 import ConfirmModal from '../components/common/ConfirmModal';
+import RatingModal from '../components/events/RatingModal';
 
 const EventMap = lazy(() => import('../components/events/EventMap'));
 
@@ -30,6 +31,8 @@ export default function EventDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [modal, setModal] = useState({ open: false, type: null });
+  const [ratingOpen, setRatingOpen] = useState(false);
+  const [ratingDone, setRatingDone] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -67,6 +70,7 @@ export default function EventDetailPage() {
   const myInscription = inscriptions.find(i => i.usuario_id === user?.id);
   const isConfirmed   = myInscription?.estado === 'confirmed';
   const isWaiting     = myInscription?.estado === 'waiting';
+  const hasAttended   = isConfirmed && !ratingDone; // asistio se auto-marca al finalizar
   const plazasLibres  = event.aforo_maximo - inscriptions.filter(i => i.estado === 'confirmed').length;
   const isPast        = new Date(event.fecha_hora) < new Date();
 
@@ -135,7 +139,17 @@ export default function EventDetailPage() {
     }
   };
 
-  const handleRate = () => navigate(`/events/${id}/rate`);
+  const handleFinalize = async () => {
+    try {
+      await api.put(`/api/events/${id}`, { estado: 'finalizado' });
+      await refreshData();
+      toast.success('Evento marcado como finalizado.');
+    } catch {
+      toast.error('No se pudo finalizar el evento.');
+    }
+  };
+
+  const handleRate = () => setRatingOpen(true);
 
   return (
     <>
@@ -191,10 +205,12 @@ export default function EventDetailPage() {
             isWaiting={isWaiting}
             isPast={isPast}
             plazasLibres={plazasLibres}
+            hasAttended={hasAttended}
             onJoin={handleJoin}
             onLeave={handleLeave}
             onCancel={handleCancelEvent}
             onRate={handleRate}
+            onFinalize={handleFinalize}
           />
         </aside>
       </div>
@@ -219,6 +235,34 @@ export default function EventDetailPage() {
       onConfirm={confirmCancelEvent}
       onCancel={() => setModal({ open: false, type: null })}
     />
+
+    {ratingOpen && (() => {
+      const confirmedOthers = inscriptions
+        .filter(i => i.estado === 'confirmed' && i.usuario_id !== user?.id)
+        .map(i => i.usuario)
+        .filter(Boolean);
+      const org = event.organizador;
+      const includeOrg = org && org.id !== user?.id && !confirmedOthers.some(p => p?.id === org.id);
+      const ratingParticipants = includeOrg
+        ? [{ ...org, isOrganizer: true }, ...confirmedOthers]
+        : confirmedOthers;
+      return (
+        <RatingModal
+          eventId={id}
+          participants={ratingParticipants}
+          onClose={() => setRatingOpen(false)}
+          onSuccess={(result) => {
+            setRatingOpen(false);
+            setRatingDone(true);
+            if (result === 'already_rated') {
+              toast.info('Ya habías valorado este evento anteriormente.');
+            } else {
+              toast.success('¡Valoraciones enviadas correctamente!');
+            }
+          }}
+        />
+      );
+    })()}
     </>
   );
 }

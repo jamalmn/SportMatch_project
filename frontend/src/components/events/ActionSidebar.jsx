@@ -40,7 +40,7 @@ function PlazasCard({ event, plazasLibres }) {
   );
 }
 
-function ActionCard({ event, isOrganizer, isConfirmed, isWaiting, isPast, plazasLibres, onJoin, onLeave, onCancel, onRate }) {
+function ActionCard({ event, isOrganizer, isConfirmed, isWaiting, isPast, plazasLibres, hasAttended, onJoin, onLeave, onCancel, onRate, onFinalize }) {
   const navigate = useNavigate();
 
   let content;
@@ -52,7 +52,7 @@ function ActionCard({ event, isOrganizer, isConfirmed, isWaiting, isPast, plazas
       </p>
     );
   } else if (event.estado === 'finalizado') {
-    content = isConfirmed ? (
+    content = hasAttended ? (
       <button
         onClick={onRate}
         className="w-full py-2.5 rounded-full bg-sm-green-500 text-white text-sm font-semibold hover:bg-sm-green-600 transition-colors"
@@ -62,19 +62,15 @@ function ActionCard({ event, isOrganizer, isConfirmed, isWaiting, isPast, plazas
     ) : (
       <p className="text-sm text-center text-sm-gray-400">Este evento ha finalizado</p>
     );
-  } else if (isPast) {
-    content = isConfirmed ? (
+  } else if (isOrganizer) {
+    content = isPast ? (
       <button
-        onClick={onRate}
-        className="w-full py-2.5 rounded-full bg-sm-green-500 text-white text-sm font-semibold hover:bg-sm-green-600 transition-colors"
+        onClick={onFinalize}
+        className="w-full py-2.5 rounded-full bg-amber-500 text-white text-sm font-semibold hover:bg-amber-600 transition-colors"
       >
-        Valorar participantes
+        Finalizar evento
       </button>
     ) : (
-      <p className="text-sm text-center text-sm-gray-400">No asististe a este evento</p>
-    );
-  } else if (isOrganizer) {
-    content = (
       <div className="space-y-2">
         <button
           onClick={() => navigate(`/events/${event.id}/edit`)}
@@ -89,6 +85,10 @@ function ActionCard({ event, isOrganizer, isConfirmed, isWaiting, isPast, plazas
           Cancelar evento
         </button>
       </div>
+    );
+  } else if (isPast) {
+    content = (
+      <p className="text-sm text-center text-sm-gray-400">El evento ya ha terminado</p>
     );
   } else if (isConfirmed) {
     content = (
@@ -256,10 +256,12 @@ export default function ActionSidebar({
   isWaiting,
   isPast,
   plazasLibres,
+  hasAttended,
   onJoin,
   onLeave,
   onCancel,
   onRate,
+  onFinalize,
 }) {
   return (
     <div className="space-y-4">
@@ -272,10 +274,12 @@ export default function ActionSidebar({
         isWaiting={isWaiting}
         isPast={isPast}
         plazasLibres={plazasLibres}
+        hasAttended={hasAttended}
         onJoin={onJoin}
         onLeave={onLeave}
         onCancel={onCancel}
         onRate={onRate}
+        onFinalize={onFinalize}
       />
 
       <OrganizerCard

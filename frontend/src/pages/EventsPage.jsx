@@ -43,8 +43,22 @@ export default function EventsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [filters, setFilters] = useState(() => paramsToFilters(searchParams));
   const [view, setView]       = useState('grid');
+  const [coords, setCoords]   = useState(null);
 
-  const apiFilters = { ...filters, limit: PAGE_SIZE, offset: (filters.page - 1) * PAGE_SIZE };
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => { /* permiso denegado — cargamos eventos sin distancia */ }
+    );
+  }, []);
+
+  const apiFilters = {
+    ...filters,
+    limit:  PAGE_SIZE,
+    offset: (filters.page - 1) * PAGE_SIZE,
+    ...(coords ? { lat: coords.lat, lng: coords.lng, radio_km: 50 } : {}),
+  };
   const { events, total, loading, error, refetch } = useEvents(apiFilters);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));

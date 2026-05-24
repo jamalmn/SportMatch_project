@@ -89,7 +89,7 @@ export default function ProfileHeader({ user, isOwnProfile, onEditClick }) {
   const updateDeportes = async (updated) => {
     setSaving(true);
     try {
-      await api.put(`/api/users/${user.id}`, { deportes_favoritos: updated });
+      await api.put('/api/users/me', { deportes_favoritos: updated });
       setDeportes(updated);
     } catch { /* silently ignore — UI stays unchanged */ }
     finally { setSaving(false); }

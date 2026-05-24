@@ -86,8 +86,8 @@ export default function DashboardPage() {
                 loading={loadingRecommended}
                 userSports={user?.deportes_favoritos ?? []}
               />
-              {/* Notificaciones: solo visible en móvil/tablet (en desktop van en la columna derecha) */}
-              <div className="lg:hidden">
+              {/* Notificaciones: solo visible en móvil (en md+ el icono de la navbar navega a /notifications) */}
+              <div className="md:hidden">
                 <NotificationsPanel
                   notifications={notifications}
                   loading={loadingNotifications}
