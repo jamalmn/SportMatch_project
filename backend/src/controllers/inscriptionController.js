@@ -13,60 +13,71 @@ async function joinEvent(req, res, next) {
   try {
     const { eventId } = req.params;
 
-    // 1. Buscar evento
-    const evento = await Event.findOne({ where: { id: eventId, deleted_at: null } });
-    if (!evento) return next(createError(404, 'Evento no encontrado', 'EVENT_NOT_FOUND'));
+    // Todo el flujo de decisión (¿hay plaza?) y escritura va dentro de una transacción
+    // con bloqueo de fila sobre el evento: dos inscripciones simultáneas a la última
+    // plaza se serializan y la segunda pasa a lista de espera (sin overbooking).
+    const { evento, inscription, posicion_espera, hayPlaza } = await sequelize.transaction(async (t) => {
+      // 1. Buscar evento con lock
+      const ev = await Event.findOne({
+        where:       { id: eventId, deleted_at: null },
+        transaction: t,
+        lock:        t.LOCK.UPDATE,
+      });
+      if (!ev) throw createError(404, 'Evento no encontrado', 'EVENT_NOT_FOUND');
 
-    // 2. Estado del evento
-    if (evento.estado === 'cancelado' || evento.estado === 'finalizado') {
-      return next(createError(409, 'No es posible inscribirse en este evento', 'EVENT_NOT_OPEN'));
-    }
+      // 2. Estado del evento
+      if (ev.estado === 'cancelado' || ev.estado === 'finalizado') {
+        throw createError(409, 'No es posible inscribirse en este evento', 'EVENT_NOT_OPEN');
+      }
 
-    // 3. Regla de negocio: un organizador no puede inscribirse en su propio evento
-    if (evento.organizador_id === req.user.id) {
-      return next(createError(403, 'El organizador no puede inscribirse en su propio evento', 'ORGANIZER_CANNOT_JOIN'));
-    }
+      // 3. Regla de negocio: un organizador no puede inscribirse en su propio evento
+      if (ev.organizador_id === req.user.id) {
+        throw createError(403, 'El organizador no puede inscribirse en su propio evento', 'ORGANIZER_CANNOT_JOIN');
+      }
 
-    // 4. Comprobar inscripción existente (cualquier estado)
-    const existing = await Inscription.findOne({
-      where: { evento_id: eventId, usuario_id: req.user.id },
-    });
-    if (existing && existing.estado !== 'cancelled') {
-      return next(createError(409, 'Ya tienes una inscripción activa en este evento', 'ALREADY_INSCRIBED'));
-    }
+      // 4. Comprobar inscripción existente (cualquier estado)
+      const existing = await Inscription.findOne({
+        where:       { evento_id: eventId, usuario_id: req.user.id },
+        transaction: t,
+      });
+      if (existing && existing.estado !== 'cancelled') {
+        throw createError(409, 'Ya tienes una inscripción activa en este evento', 'ALREADY_INSCRIBED');
+      }
 
-    // 5. Determinar estado
-    const hayPlaza = evento.aforo_actual < evento.aforo_maximo;
-    const estado   = hayPlaza ? 'confirmed' : 'waiting';
+      // 5. Determinar estado (lectura consistente gracias al lock)
+      const plaza  = ev.aforo_actual < ev.aforo_maximo;
+      const estado = plaza ? 'confirmed' : 'waiting';
 
-    // 6. Posición en espera si corresponde
-    let posicion_espera = null;
-    if (!hayPlaza) {
-      posicion_espera = await Inscription.count({ where: { evento_id: eventId, estado: 'waiting' } }) + 1;
-    }
+      // 6. Posición en espera si corresponde
+      let posicion = null;
+      if (!plaza) {
+        posicion = await Inscription.count({
+          where:       { evento_id: eventId, estado: 'waiting' },
+          transaction: t,
+        }) + 1;
+      }
 
-    // 7. Transacción
-    const inscription = await sequelize.transaction(async (t) => {
+      // 7. Escritura
       let ins;
       if (existing) {
         // Reutilizar la fila cancelada para no violar el UNIQUE (evento_id, usuario_id)
-        await existing.update({ estado, posicion_espera, asistio: null }, { transaction: t });
+        await existing.update({ estado, posicion_espera: posicion, asistio: null }, { transaction: t });
         ins = existing;
       } else {
         ins = await Inscription.create(
-          { evento_id: eventId, usuario_id: req.user.id, estado, posicion_espera },
+          { evento_id: eventId, usuario_id: req.user.id, estado, posicion_espera: posicion },
           { transaction: t }
         );
       }
 
-      if (hayPlaza) {
-        await evento.increment('aforo_actual', { transaction: t });
-        if (evento.aforo_actual + 1 === evento.aforo_maximo) {
-          await evento.update({ estado: 'completo' }, { transaction: t });
+      if (plaza) {
+        await ev.increment('aforo_actual', { transaction: t });
+        if (ev.aforo_actual + 1 === ev.aforo_maximo) {
+          await ev.update({ estado: 'completo' }, { transaction: t });
         }
       }
 
-      return ins;
+      return { evento: ev, inscription: ins, posicion_espera: posicion, hayPlaza: plaza };
     });
 
     // 8. Notificación (fuera de la transacción)

@@ -18,11 +18,9 @@ Thumbs.db
 # Docker volumes
 postgres_data/
 
-# Documentación local (no forma parte del repositorio)
-*.md
-
 # Cobertura de tests
 coverage/
 
 # Configuración local de Claude Code
 .claude/
+
