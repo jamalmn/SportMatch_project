@@ -1,10 +1,10 @@
 # SportMatch 🏃‍♂️⚽🎾
 
+[![CI](https://github.com/jamalmn/SportMatch_project/actions/workflows/ci.yml/badge.svg)](https://github.com/jamalmn/SportMatch_project/actions/workflows/ci.yml)
+
 > Plataforma web para la organización y participación en eventos deportivos amateur.
 
 **SportMatch** cubre el hueco que dejan herramientas como WhatsApp, Meetup o Playtomic para el deporte amateur: permite crear y gestionar eventos deportivos, inscribirse con lista de espera automática, buscar actividades por proximidad geográfica y valorar a otros participantes tras el evento.
-
-🌐 **Producción:** [sport-match-project.vercel.app](https://sport-match-project.vercel.app)
 
 ---
 
@@ -32,8 +32,6 @@
 | Autenticación | JWT + Refresh Token |
 | Mapas | Leaflet + OpenStreetMap |
 | Email | Nodemailer |
-| Despliegue frontend | Vercel |
-| Despliegue backend | Render |
 | Contenedores (dev) | Docker + docker-compose |
 
 ---
@@ -42,117 +40,81 @@
 
 ```
 SportMatch_project/
-├── backend/          # API REST con Node.js + Express
-│   ├── src/
-│   │   ├── config/
-│   │   ├── controllers/
-│   │   ├── middlewares/
-│   │   ├── models/
-│   │   ├── routes/
-│   │   └── services/
-│   ├── .env.example
-│   └── README.md
-├── frontend/         # SPA con React + Vite
-│   ├── src/
-│   │   ├── components/
-│   │   ├── context/
-│   │   ├── hooks/
-│   │   ├── pages/
-│   │   └── services/
-│   ├── vercel.json
-│   └── README.md
-├── docker-compose.yml
-└── .gitignore
+├── backend/          # API REST (Node.js + Express + Sequelize)
+│   ├── src/          # config, controllers, middlewares, models, routes, services
+│   ├── tests/        # Jest + Supertest (contra PostgreSQL real)
+│   ├── database/     # esquema SQL de producción
+│   └── Dockerfile
+├── frontend/         # SPA (React + Vite + Tailwind)
+│   ├── src/          # components, context, hooks, pages, services, tests
+│   ├── Dockerfile    # build multi-stage → nginx
+├── .github/workflows/ci.yml   # tests + build en cada push/PR
+└── docker-compose.yml         # PostgreSQL + API + frontend
 ```
 
 ---
 
 ## Instalación y puesta en marcha
 
-### Requisitos previos
+### Opción A — Docker (recomendada)
 
-- Node.js 18+
-- Docker y Docker Compose
-- Git
-
-### 1. Clonar el repositorio
+Requisitos: Docker y Docker Compose.
 
 ```bash
 git clone https://github.com/jamalmn/SportMatch_project.git
 cd SportMatch_project
-```
-
-### 2. Variables de entorno
-
-```bash
-# Backend
-cp backend/.env.example backend/.env
-# Editar backend/.env con tus valores
-
-# Frontend
-cp frontend/.env.example frontend/.env
-# Editar frontend/.env con tus valores
-```
-
-Variables necesarias en `backend/.env`:
-
-```env
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=sportmatch
-DB_USER=postgres
-DB_PASSWORD=tu_password
-
-JWT_SECRET=tu_jwt_secret
-JWT_EXPIRES_IN=1h
-REFRESH_TOKEN_SECRET=tu_refresh_secret
-REFRESH_TOKEN_EXPIRES_IN=7d
-
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USER=tu_email@gmail.com
-EMAIL_PASSWORD=tu_password
-
-PORT=5000
-NODE_ENV=development
-FRONTEND_URL=http://localhost:5173
-```
-
-Variables necesarias en `frontend/.env`:
-
-```env
-VITE_API_URL=http://localhost:5000/api
-```
-
-### 3. Arrancar con Docker (recomendado)
-
-```bash
 docker compose up --build
 ```
 
-Esto levanta PostgreSQL, el backend y el frontend automáticamente.
+Levanta PostgreSQL, la API y el frontend (con valores por defecto de desarrollo).
+Para cambiar credenciales o secretos, copia `backend/.env.example` a `.env` en la raíz antes de arrancar.
 
-| Servicio | URL |
-|----------|-----|
-| Frontend | http://localhost:5173 |
-| Backend API | http://localhost:5000/api |
-| Base de datos | localhost:5432 |
+| Servicio    | URL                         |
+|-------------|-----------------------------|
+| Frontend    | http://localhost:5173       |
+| Backend API | http://localhost:5000/api   |
+| PostgreSQL  | localhost:5455              |
 
-### 4. Arrancar manualmente (sin Docker)
+### Opción B — Manual (sin Docker)
+
+Requisitos: Node.js 20+ y PostgreSQL en local.
 
 ```bash
-# Base de datos: necesitas PostgreSQL corriendo localmente
+# 1. Variables de entorno (el backend lee el .env de la RAÍZ del repo)
+cp backend/.env.example .env          # rellena DB_*, JWT_* y FRONTEND_URL
+cp frontend/.env.example frontend/.env
+#    frontend/.env → VITE_API_URL=http://localhost:5000   (sin /api al final)
 
-# Backend
-cd backend
-npm install
-npm run dev
+# 2. Backend
+cd backend && npm install && npm run dev
 
-# Frontend (nueva terminal)
-cd frontend
-npm install
-npm run dev
+# 3. Frontend (otra terminal)
+cd frontend && npm install && npm run dev
 ```
+
+Datos de ejemplo (opcional): `npm run seed` dentro de `backend/`.
+
+### Tests
+
+```bash
+# Backend: necesita PostgreSQL con una base de datos vacía llamada sportmatch_test
+cd backend && npm test
+
+# Frontend
+cd frontend && npx vitest run
+```
+
+El mismo flujo se ejecuta en GitHub Actions en cada push y pull request.
+
+---
+
+## Decisiones técnicas
+
+- **Lista de espera sin overbooking.** Inscribirse y cancelar se ejecutan dentro de transacciones con `SELECT ... FOR UPDATE` sobre la fila del evento, de modo que dos peticiones simultáneas a la última plaza se serializan. Hay un test de concurrencia que lanza 4 inscripciones a la vez sobre un evento de aforo 2.
+- **Promoción automática.** Al cancelar una plaza confirmada, el primero de la cola pasa a confirmado y la cola se reordena en la misma transacción.
+- **Búsqueda por proximidad** con la fórmula de Haversine.
+- **Esquema gestionado por entorno:** `sync` de Sequelize en test/desarrollo y SQL versionado (`backend/database/`) en producción.
+- **Tests contra PostgreSQL real**, no contra mocks de base de datos.
 
 ---
 
@@ -169,17 +131,7 @@ La API expone 24 endpoints agrupados en 6 recursos:
 | Valoraciones | `/api/ratings` | Crear y consultar valoraciones |
 | Notificaciones | `/api/notifications` | Listar, marcar como leída |
 
-Documentación completa disponible en `backend/README.md`.
-
----
-
-## Despliegue en producción
-
-El proyecto está desplegado en:
-
-- **Frontend:** Vercel — [sport-match-project.vercel.app](https://sport-match-project.vercel.app)
-- **Backend:** Render — [sportmatch-api.onrender.com](https://sportmatch-api.onrender.com)
-- **Base de datos:** PostgreSQL en Render
+Las rutas están definidas en `backend/src/routes/`.
 
 ---
 

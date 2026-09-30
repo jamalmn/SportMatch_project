@@ -474,3 +474,35 @@ describe('GET /api/users/me/inscriptions (mis inscripciones)', () => {
 //   GET inscripciones del evento        →  4 casos
 //   GET mis inscripciones               →  3 casos
 //   (+ 2 casos de posiciones en cola dentro del describe POST)
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe('Concurrencia — inscripciones simultáneas con el aforo casi lleno', () => {
+  it('no debe superar el aforo: con aforo 2 y 4 peticiones a la vez, 2 confirmadas y 2 en espera', async () => {
+    const ev = await createEvent(organizador.id, { aforo_maximo: 2 });
+
+    const responses = await Promise.all(
+      [tokenA, tokenB, tokenC, tokenD].map((token) =>
+        request(app)
+          .post(`/api/events/${ev.id}/inscriptions`)
+          .set('Authorization', `Bearer ${token}`)
+      )
+    );
+
+    responses.forEach((r) => expect(r.status).toBe(201));
+
+    const estados = responses.map((r) => r.body.inscription.estado);
+    expect(estados.filter((e) => e === 'confirmed')).toHaveLength(2);
+    expect(estados.filter((e) => e === 'waiting')).toHaveLength(2);
+
+    // Posiciones de espera únicas y correlativas (1, 2)
+    const posiciones = responses
+      .filter((r) => r.body.inscription.estado === 'waiting')
+      .map((r) => r.body.inscription.posicion_espera)
+      .sort();
+    expect(posiciones).toEqual([1, 2]);
+
+    const evFinal = await request(app).get(`/api/events/${ev.id}`);
+    expect(evFinal.body.aforo_actual).toBe(2);
+    expect(evFinal.body.estado).toBe('completo');
+  });
+});
