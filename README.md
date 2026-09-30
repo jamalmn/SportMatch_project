@@ -6,8 +6,6 @@
 
 **SportMatch** cubre el hueco que dejan herramientas como WhatsApp, Meetup o Playtomic para el deporte amateur: permite crear y gestionar eventos deportivos, inscribirse con lista de espera automática, buscar actividades por proximidad geográfica y valorar a otros participantes tras el evento.
 
-🌐 **Producción:** [sport-match-project.vercel.app](https://sport-match-project.vercel.app)
-
 ---
 
 ## Funcionalidades principales
@@ -34,8 +32,6 @@
 | Autenticación | JWT + Refresh Token |
 | Mapas | Leaflet + OpenStreetMap |
 | Email | Nodemailer |
-| Despliegue frontend | Vercel |
-| Despliegue backend | Render |
 | Contenedores (dev) | Docker + docker-compose |
 
 ---
@@ -52,7 +48,6 @@ SportMatch_project/
 ├── frontend/         # SPA (React + Vite + Tailwind)
 │   ├── src/          # components, context, hooks, pages, services, tests
 │   ├── Dockerfile    # build multi-stage → nginx
-│   └── vercel.json
 ├── .github/workflows/ci.yml   # tests + build en cada push/PR
 └── docker-compose.yml         # PostgreSQL + API + frontend
 ```
@@ -137,16 +132,6 @@ La API expone 24 endpoints agrupados en 6 recursos:
 | Notificaciones | `/api/notifications` | Listar, marcar como leída |
 
 Las rutas están definidas en `backend/src/routes/`.
-
----
-
-## Despliegue en producción
-
-El proyecto está desplegado en:
-
-- **Frontend:** Vercel — [sport-match-project.vercel.app](https://sport-match-project.vercel.app)
-- **Backend:** Render — [sportmatch-api.onrender.com](https://sportmatch-api.onrender.com) _(plan gratuito: la primera petición puede tardar unos segundos en "despertar")_
-- **Base de datos:** PostgreSQL en Render
 
 ---
 
